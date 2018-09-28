@@ -1,8 +1,7 @@
-:- module(ereg, [maton_rule/0, tOr/2, tDot/2, tStar/2, tPlus/2, tOption/2, tGroupLeft/2, tGroupRight/2]).
+:- module(ereg, []).
 :- consult(regexp).
-:- use_module(regexp).
 
-maton_rule.
+:- regexp:export(Clauses), forall(member(C, Clauses), (expand_term(C, C1), assertz(C1))).
 
 tOr --> ['|'].
 tDot --> ['.'].

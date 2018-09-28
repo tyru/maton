@@ -30,13 +30,16 @@ check_opts(Opts, Err) :-
     catch(
       (
         % TODO Allow only rule files
-        consult(From), consult(To), Err = nil
+        consult_rule(From), consult_rule(To), Err = nil
       ), E, (
         message_to_string(E, S),
         format(atom(Err), 'could not load ~s', [S])
       )
     )
   ).
+
+consult_rule(node) :- !.
+consult_rule(Module) :- consult(Module), Module:maton_rule, !.
 
 loop(Opts, Args) :-
   repeat,
@@ -61,6 +64,14 @@ convert(Opts, In, Out) :-
   member(to(To), Opts),
   convert(From, In, To, Out).
 convert(From, In, To, Out) :-
+  % In -> Node
   string_chars(In, Cs),
   phrase(From:toplevel(Node), Cs),
-  phrase(To:toplevel(Node), Out).
+  call_hook(From, after_phrase_node, Node, Node1),
+  % Node -> Out
+  (To == node ->
+    Out = Node1;
+    phrase(To:toplevel(Node1), Out)).
+
+call_hook(Module, Pred, Node, Node1) :-
+  catch(call(Module:Pred, Node, Node1), _, Node1 = Node).
