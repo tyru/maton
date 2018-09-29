@@ -29,17 +29,28 @@ check_opts(Opts, Err) :-
     (var(From); var(To)) -> Err = '--from and --to options are required.' ;
     catch(
       (
-        % TODO Allow only rule files
         consult_rule(From), consult_rule(To), Err = nil
       ), E, (
-        message_to_string(E, S),
-        format(atom(Err), 'could not load ~s', [S])
+        get_message(E, S),
+        format(atom(Err), 'could not load modules: ~s', [S])
       )
     )
   ).
 
-consult_rule(node) :- !.
-consult_rule(Module) :- consult(Module), Module:maton_rule, !.
+get_message(E, E) :- atom(E), !.
+get_message(E, S) :- message_to_string(E, S).
+
+consult_rule(Module) :-
+  % 1. Module name consists of a-z characters.
+  (
+    string_codes(Module, Cs),
+    forall(member(C, Cs), between(97, 122, C)), !;
+      throw('module name must consist of a-z characters')
+  ),
+  % 2. Can load it
+  consult(Module),
+  % 3. It has maton_rule/0 predicate
+  Module:maton_rule.
 
 loop(Opts, Args) :-
   repeat,
@@ -65,13 +76,8 @@ convert(Opts, In, Out) :-
   convert(From, In, To, Out).
 convert(From, In, To, Out) :-
   % In -> Node
-  string_chars(In, Cs),
-  phrase(From:toplevel(Node), Cs),
-  call_hook(From, after_phrase_node, Node, Node1),
+  string_chars(In, InCs),
+  phrase(From:toplevel(Node), InCs),
   % Node -> Out
-  (To == node ->
-    Out = Node1;
-    phrase(To:toplevel(Node1), Out)).
-
-call_hook(Module, Pred, Node, Node1) :-
-  catch(call(Module:Pred, Node, Node1), _, Node1 = Node).
+  phrase(To:toplevel(Node), OutCs),
+  string_chars(Out, OutCs).
