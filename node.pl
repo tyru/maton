@@ -3,6 +3,8 @@
  * textual representation which can be recognizable as Prolog term.
  */
 :- module(node, []).
+:- consult(common).
+:- use_module(common).
 
 maton_rule.
 
@@ -26,7 +28,13 @@ quant(repeat(A, N, M)) -->    % {n,m}
 quant(A) --> group(A).
 
 % 1 or more digits
-digits(N) --> {atom_number(A, N)}, [A].
+digits(N) --> when_parsing(parse_digits(0, N), generate_digits(N)).
+
+generate_digits(N) --> [A], {atom_number(A, N)}.
+
+parse_digits(C, N) --> digit(D), {C1 is C * 10 + D}, parse_digits(C1, N).
+parse_digits(C, N) --> digit(D), {N is C * 10 + D}.
+digit(D) --> [C], {atom_number(C, D)}.
 
 group(group(A)) --> tGroupLeft, toplevel(A), tGroupRight.
 group(A) --> charset(A).

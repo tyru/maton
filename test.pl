@@ -94,38 +94,32 @@
   test(repeat_a_0, [nondet, true(Node = [repeat(char(a), 0)])]) :-
     string_chars("a{0}", Cs),
     phrase(ereg:toplevel(Node), Cs).
-  test(repeat_group_0, [nondet, true(Node = [repeat(group([char(a), char(b)]), 0)])]) :-
-    string_chars("(ab){0}", Cs),
+  test(repeat_a_11, [nondet, true(Node = [repeat(char(a), 11)])]) :-
+    string_chars("a{11}", Cs),
     phrase(ereg:toplevel(Node), Cs).
   test(repeat_a_12, [nondet, true(Node = [repeat(char(a), 1, 2)])]) :-
     string_chars("a{1,2}", Cs),
     phrase(ereg:toplevel(Node), Cs).
-  test(repeat_group_12, [nondet, true(Node = [repeat(group([char(a), char(b)]), 1, 2)])]) :-
-    string_chars("(ab){1,2}", Cs),
-    phrase(ereg:toplevel(Node), Cs).
   test(repeat_a_22, [nondet, true(Node = [repeat(char(a), 2, 2)])]) :-
     string_chars("a{2,2}", Cs),
     phrase(ereg:toplevel(Node), Cs).
-  test(repeat_group_22, [nondet, true(Node = [repeat(group([char(a), char(b)]), 2, 2)])]) :-
-    string_chars("(ab){2,2}", Cs),
+  test(repeat_a_11_22, [nondet, true(Node = [repeat(char(a), 11, 22)])]) :-
+    string_chars("a{11,22}", Cs),
     phrase(ereg:toplevel(Node), Cs).
   test(repeat_a_1m, [nondet, true(Node = [repeat(char(a), 1, -1)])]) :-
     string_chars("a{1,}", Cs),
     phrase(ereg:toplevel(Node), Cs).
-  test(repeat_group_1m, [nondet, true(Node = [repeat(group([char(a), char(b)]), 1, -1)])]) :-
-    string_chars("(ab){1,}", Cs),
+  test(repeat_a_11m, [nondet, true(Node = [repeat(char(a), 11, -1)])]) :-
+    string_chars("a{11,}", Cs),
     phrase(ereg:toplevel(Node), Cs).
   test(repeat_a_n1, [nondet, true(Node = [repeat(char(a), 0, 1)])]) :-
     string_chars("a{,1}", Cs),
     phrase(ereg:toplevel(Node), Cs).
-  test(repeat_group_n1, [nondet, true(Node = [repeat(group([char(a), char(b)]), 0, 1)])]) :-
-    string_chars("(ab){,1}", Cs),
+  test(repeat_a_n11, [nondet, true(Node = [repeat(char(a), 0, 11)])]) :-
+    string_chars("a{,11}", Cs),
     phrase(ereg:toplevel(Node), Cs).
   test(repeat_a_nm, [nondet, true(Node = [repeat(char(a), 0, -1)])]) :-
     string_chars("a{,}", Cs),
-    phrase(ereg:toplevel(Node), Cs).
-  test(repeat_group_nm, [nondet, true(Node = [repeat(group([char(a), char(b)]), 0, -1)])]) :-
-    string_chars("(ab){,}", Cs),
     phrase(ereg:toplevel(Node), Cs).
 :- end_tests(quantifier).
 
