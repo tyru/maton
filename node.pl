@@ -63,9 +63,15 @@ comma([_|_]) --> tComma.
 char(dot) --> tDot.
 char(bol) --> tBOL.
 char(eol) --> tEOL.
-char(nl) --> tEscNL.
-char(char(A)) --> tCharLeft, ['\\', C], tCharRight, {atom_concat('\\', C, A)}.
+char(A) --> [A], {esc(_, A)}.
+char(char(A)) --> tCharLeft, ['\\', C], tCharRight, {not(esc(C, _)), atom_concat('\\', C, A)}.
 char(char(C)) --> tCharLeft, [C], {not(meta(C))}, tCharRight.
+
+esc('n', nl).
+esc('e', esc).
+esc('t', tab).
+esc('r', cr).
+esc('b', bs).
 
 meta('(').
 meta(')').
@@ -83,8 +89,8 @@ meta('\\').
 
 tOrLeft --> ['o', 'r', '('].
 tOrRight --> [')'].
-tDigitsLeft = ['d', 'i', 'g', 'i', 't', 's', '('].
-tDigitsRight = [')'].
+tDigitsLeft --> ['d', 'i', 'g', 'i', 't', 's', '('].
+tDigitsRight --> [')'].
 tSeqLeft --> ['['].
 tSeqRight --> [']'].
 tStarLeft --> ['s', 't', 'a', 'r', '('].

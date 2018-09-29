@@ -69,9 +69,15 @@ charset_meta(']').
 char(dot) --> tDot.
 char(bol) --> tBOL.
 char(eol) --> tEOL.
-char(nl) --> tEscNL.
-char(char(A)) --> ['\\', C], {atom_concat('\\', C, A)}.
+char(A) --> ['\\', C], {esc(C, A)}.
+char(char(A)) --> ['\\', C], {not(esc(C, _)), atom_concat('\\', C, A)}.
 char(char(C)) --> [C], {not(meta(C))}.
+
+esc('n', nl).
+esc('e', esc).
+esc('t', tab).
+esc('r', cr).
+esc('b', bs).
 
 meta('(').
 meta(')').
@@ -103,4 +109,3 @@ tExcludeRight --> [']'].
 tDot --> ['.'].
 tBOL --> ['^'].
 tEOL --> ['$'].
-tEscNL --> ['\\', 'n'].

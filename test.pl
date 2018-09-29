@@ -13,6 +13,18 @@
   test(nl, [nondet, true(Node == [nl])]) :-
     string_chars("\\n", Cs),
     phrase(ereg:toplevel(Node), Cs).
+  test(esc, [nondet, true(Node == [esc])]) :-
+    string_chars("\\e", Cs),
+    phrase(ereg:toplevel(Node), Cs).
+  test(tab, [nondet, true(Node == [tab])]) :-
+    string_chars("\\t", Cs),
+    phrase(ereg:toplevel(Node), Cs).
+  test(cr, [nondet, true(Node == [cr])]) :-
+    string_chars("\\r", Cs),
+    phrase(ereg:toplevel(Node), Cs).
+  test(bs, [nondet, true(Node == [bs])]) :-
+    string_chars("\\b", Cs),
+    phrase(ereg:toplevel(Node), Cs).
   test(esc, [nondet, true(Node == [char('\\a')])]) :-
     string_chars("\\a", Cs),
     phrase(ereg:toplevel(Node), Cs).

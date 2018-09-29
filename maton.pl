@@ -80,4 +80,4 @@ convert(From, In, To, Out) :-
   phrase(From:toplevel(Node), InCs),
   % Node -> Out
   phrase(To:toplevel(Node), OutCs),
-  string_chars(Out, OutCs).
+  atomic_list_concat(OutCs, Out).
