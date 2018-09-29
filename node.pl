@@ -26,7 +26,7 @@ quant(repeat(A, N, M)) -->    % {n,m}
 quant(A) --> group(A).
 
 % 1 or more digits
-digits(N) --> {atom_number(A, N)}, tDigitsLeft, [A], tDigitsRight.
+digits(N) --> {atom_number(A, N)}, [A].
 
 group(group(A)) --> tGroupLeft, toplevel(A), tGroupRight.
 group(A) --> charset(A).
@@ -89,8 +89,6 @@ meta('\\').
 
 tOrLeft --> ['o', 'r', '('].
 tOrRight --> [')'].
-tDigitsLeft --> ['d', 'i', 'g', 'i', 't', 's', '('].
-tDigitsRight --> [')'].
 tSeqLeft --> ['['].
 tSeqRight --> [']'].
 tStarLeft --> ['s', 't', 'a', 'r', '('].
