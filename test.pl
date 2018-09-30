@@ -1,4 +1,6 @@
+:- consult(maton).
 :- consult(ereg).
+:- consult(vim).
 
 :- begin_tests(char).
   test(dot, [nondet, true(Node == [dot])]) :-
@@ -46,22 +48,22 @@
   test(empty_or2, [nondet, true(Node == or([char(a)], []))]) :-
     string_chars("a|", Cs),
     phrase(ereg:toplevel(Node), Cs).
-  test(group1, [nondet, true(Node == [group([char(a)])])]) :-
+  test(group1, [nondet, true(Node == [capture([char(a)])])]) :-
     string_chars("(a)", Cs),
     phrase(ereg:toplevel(Node), Cs).
-  test(group2, [nondet, true(Node == [group([char(a), char(b)])])]) :-
+  test(group2, [nondet, true(Node == [capture([char(a), char(b)])])]) :-
     string_chars("(ab)", Cs),
     phrase(ereg:toplevel(Node), Cs).
-  test(group3, [nondet, true(Node == [group([char(a)]), group([char(b)])])]) :-
+  test(group3, [nondet, true(Node == [capture([char(a)]), capture([char(b)])])]) :-
     string_chars("(a)(b)", Cs),
     phrase(ereg:toplevel(Node), Cs).
-  test(group4, [nondet, true(Node == [group([char(a)]), char(b), group([char(c)])])]) :-
+  test(group4, [nondet, true(Node == [capture([char(a)]), char(b), capture([char(c)])])]) :-
     string_chars("(a)b(c)", Cs),
     phrase(ereg:toplevel(Node), Cs).
-  test(group_or1, [nondet, true(Node == [char(z), group(or([char(a)], [char(b)]))])]) :-
+  test(group_or1, [nondet, true(Node == [char(z), capture(or([char(a)], [char(b)]))])]) :-
     string_chars("z(a|b)", Cs),
     phrase(ereg:toplevel(Node), Cs).
-  test(group_or2, [nondet, true(Node == [char(z), group(or([char(a), char(b)], [char(c)]))])]) :-
+  test(group_or2, [nondet, true(Node == [char(z), capture(or([char(a), char(b)], [char(c)]))])]) :-
     string_chars("z(ab|c)", Cs),
     phrase(ereg:toplevel(Node), Cs).
 :- end_tests(group_and_or).
@@ -70,25 +72,25 @@
   test(star1, [nondet, true(Node = [star(char(a))])]) :-
     string_chars("a*", Cs),
     phrase(ereg:toplevel(Node), Cs).
-  test(star2, [nondet, true(Node = [star(group([char(a), char(b)]))])]) :-
+  test(star2, [nondet, true(Node = [star(capture([char(a), char(b)]))])]) :-
     string_chars("(ab)*", Cs),
     phrase(ereg:toplevel(Node), Cs).
   test(plus1, [nondet, true(Node = [plus(char(a))])]) :-
     string_chars("a+", Cs),
     phrase(ereg:toplevel(Node), Cs).
-  test(plus2, [nondet, true(Node = [plus(group([char(a), char(b)]))])]) :-
+  test(plus2, [nondet, true(Node = [plus(capture([char(a), char(b)]))])]) :-
     string_chars("(ab)+", Cs),
     phrase(ereg:toplevel(Node), Cs).
   test(option1, [nondet, true(Node = [option(char(a))])]) :-
     string_chars("a?", Cs),
     phrase(ereg:toplevel(Node), Cs).
-  test(option2, [nondet, true(Node = [option(group([char(a), char(b)]))])]) :-
+  test(option2, [nondet, true(Node = [option(capture([char(a), char(b)]))])]) :-
     string_chars("(ab)?", Cs),
     phrase(ereg:toplevel(Node), Cs).
   test(repeat_a_1, [nondet, true(Node = [repeat(char(a), 1)])]) :-
     string_chars("a{1}", Cs),
     phrase(ereg:toplevel(Node), Cs).
-  test(repeat_group_1, [nondet, true(Node = [repeat(group([char(a), char(b)]), 1)])]) :-
+  test(repeat_group_1, [nondet, true(Node = [repeat(capture([char(a), char(b)]), 1)])]) :-
     string_chars("(ab){1}", Cs),
     phrase(ereg:toplevel(Node), Cs).
   test(repeat_a_0, [nondet, true(Node = [repeat(char(a), 0)])]) :-
@@ -140,48 +142,107 @@
   test(empty, [nondet]) :-
     test_include_and_exclude("[]", []).
   test(a, [nondet]) :-
-    test_include_and_exclude("[a]", [a]).
+    test_include_and_exclude("[a]", [char(a)]).
   test(a_to_z, [nondet]) :-
     test_include_and_exclude("[a-z]", [range(a, z)]).
   test(a_to_z_and_A_to_Z, [nondet]) :-
     test_include_and_exclude("[a-zA-Z]", [range(a, z), range('A', 'Z')]).
   test(a_hyphen, [nondet]) :-
-    test_include_and_exclude("[a-]", [a, '-']).
+    test_include_and_exclude("[a-]", [char(a), char('-')]).
   test(class, [nondet]) :-
     test_include_and_exclude("[[:lower:]]", [class(lower)]).
   test(class, [nondet]) :-
     test_include_and_exclude("[[:lower:][:upper:]]", [class(lower), class(upper)]).
 
   test(dot, [nondet]) :-
-    test_include_and_exclude("[.]", ['.']).
+    test_include_and_exclude("[.]", [char('.')]).
   test(star, [nondet]) :-
-    test_include_and_exclude("[*]", ['*']).
+    test_include_and_exclude("[*]", [char('*')]).
   test(plus, [nondet]) :-
-    test_include_and_exclude("[+]", ['+']).
+    test_include_and_exclude("[+]", [char('+')]).
   test(option, [nondet]) :-
-    test_include_and_exclude("[?]", ['?']).
+    test_include_and_exclude("[?]", [char('?')]).
   test(dollar, [nondet]) :-
-    test_include_and_exclude("[$]", ['$']).
+    test_include_and_exclude("[$]", [char('$')]).
 
   test(right_bracket, [nondet]) :-
-    test_include_and_exclude("[\\\\]", ['\\\\']).
+    test_include_and_exclude("[\\\\]", [char('\\\\')]).
   test(hat, [nondet]) :-
-    test_include_and_exclude("[\\^]", ['\\^']).
+    test_include_and_exclude("[\\^]", [char('\\^')]).
   test(left_bracket, [nondet]) :-
-    test_include_and_exclude("[\\[]", ['\\[']).
+    test_include_and_exclude("[\\[]", [char('\\[')]).
   test(right_bracket, [nondet]) :-
-    test_include_and_exclude("[\\]]", ['\\]']).
+    test_include_and_exclude("[\\]]", [char('\\]')]).
 
   test(exclude_hat, [nondet, true(Node = [exclude([])])]) :-
     string_chars("[^]", Cs),
     phrase(ereg:toplevel(Node), Cs).
-  test(exclude_hat, [nondet, true(Node = [exclude(['^'])])]) :-
+  test(exclude_hat, [nondet, true(Node = [exclude([char('^')])])]) :-
     string_chars("[^^]", Cs),
     phrase(ereg:toplevel(Node), Cs).
-  test(exclude_hat, [nondet, true(Node = [include([a, '^'])])]) :-
+  test(exclude_hat, [nondet, true(Node = [include([char(a), char('^')])])]) :-
     string_chars("[a^]", Cs),
     phrase(ereg:toplevel(Node), Cs).
 :- end_tests(include_and_exclude).
+
+:- begin_tests(conversion).
+  bidirectionally_convertible(ModA, PatA, ModB, PatB) :-
+    maton:convert(ModA, PatA, ModB, ResB),
+    assertion(ResB = PatB),
+    maton:convert(ModB, PatB, ModA, ResA),
+    assertion(ResA = PatA).
+  pair(A, B, L) :- member(A, L), member(B, L), compare(<, A, B).
+  same_pattern(Mods, Pat) :-
+    forall(
+      pair(M1, M2, Mods),
+      bidirectionally_convertible(M1, Pat, M2, Pat)
+    ).
+
+  test(or, [nondet]) :-
+    bidirectionally_convertible(ereg, 'a|b', vim, 'a\\|b').
+  test(star, [nondet]) :-
+    same_pattern([ereg, vim], 'a*').
+  test(plus, [nondet]) :-
+    bidirectionally_convertible(ereg, 'a+', vim, 'a\\+').
+
+  test(option1, [nondet]) :-
+    bidirectionally_convertible(ereg, 'a?', vim, 'a\\?').
+  test(option2, [nondet]) :-
+    maton:convert(vim, 'a\\?', ereg, Res1),
+    assertion(Res1 = 'a?'),
+    maton:convert(vim, 'a\\=', ereg, Res2),
+    assertion(Res2 = 'a?').
+
+  test(repeat1, [nondet]) :-
+    bidirectionally_convertible(ereg, 'a{1,2}', vim, 'a\\{1,2}').
+  test(repeat2, [nondet]) :-
+    bidirectionally_convertible(ereg, 'a{,2}', vim, 'a\\{,2}').
+  test(repeat3, [nondet]) :-
+    bidirectionally_convertible(ereg, 'a{1,}', vim, 'a\\{1,}').
+  test(repeat4, [nondet]) :-
+    bidirectionally_convertible(ereg, 'a{,}', vim, 'a\\{,}').
+
+  test(zeromatch1, [nondet]) :-
+    bidirectionally_convertible(ereg, '(?=a)', vim, 'a\\@=').
+  test(zeromatch_ereg_to_vim, [nondet]) :-
+    maton:convert(ereg, '(?=abc)', vim, ResVim),
+    assertion(ResVim = '\\%(abc\\)\\@='),
+    maton:convert(vim, '\\%(abc\\)\\@=', ereg, ResEreg),
+    assertion(ResEreg = '(?=(?:abc))').
+
+  test(include1, [nondet]) :-
+    same_pattern([ereg, vim], '[a]').
+  test(include2, [nondet]) :-
+    same_pattern([ereg, vim], '[[:lower:]]').
+  test(exclude, [nondet]) :-
+    same_pattern([ereg, vim], '[^a]').
+
+  test(capture, [nondet]) :-
+    bidirectionally_convertible(ereg, '(?:a)', vim, '\\%(a\\)').
+  test(group, [nondet]) :-
+    bidirectionally_convertible(ereg, '(a)', vim, '\\(a\\)').
+:- end_tests(conversion).
+
 
 :- begin_tests(error).
   test(error1, [fail]) :-

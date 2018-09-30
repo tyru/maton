@@ -30,6 +30,8 @@ quant(repeat(A, N, -1)) -->    % {n,}
 quant(repeat(A, N, M)) -->    % {n,m}
   group(A), tRepeatLeft, digits(N), tRepeatMiddle, digits(M), tRepeatRight,
   {N =< M}.
+quant(zeromatch(A)) -->    % (?=toplevel)
+  tZeroMatchLeft, toplevel(A), tZeroMatchRight.
 quant(A) --> group(A).
 
 % 1 or more digits
@@ -41,6 +43,7 @@ parse_digits(C, N) --> digit(D), {C1 is C * 10 + D}, parse_digits(C1, N).
 parse_digits(C, N) --> digit(D), {N is C * 10 + D}.
 digit(D) --> [C], {atom_number(C, D)}.
 
+group(capture(A)) --> tCaptureLeft, toplevel(A), tCaptureRight.
 group(group(A)) --> tGroupLeft, toplevel(A), tGroupRight.
 group(A) --> charset(A).
 
@@ -50,19 +53,26 @@ charset(A) --> char(A).
 
 charset1([]) --> [].
 charset1([range(A, B) | Xs]) --> [A, '-', B], charset1(Xs).
-charset1([A, '-']) --> [A, '-'].
-charset1([A | Xs]) --> ['\\', C], {atom_concat('\\', C, A)}, charset1(Xs).
-charset1([A | Xs]) --> [A], {not(charset_meta(A))}, charset1(Xs).
+charset1([char(A), char('-')]) --> [A, '-'].
+charset1([char(A) | Xs]) --> ['\\', C], {atom_concat('\\', C, A)}, charset1(Xs).
+charset1([char(A) | Xs]) --> [A], {not(charset_meta(A))}, charset1(Xs).
 charset1([class(Class) | Xs]) --> class(Class), charset1(Xs).
 
-class(A) --> ['[', ':'], lowers(Cs), {atom_chars(A, Cs)}, [':', ']'].
+class(A) --> ['[', ':'], lowers(A), [':', ']'].
 
 % 1 or more a-z
-lowers([A]) --> lower(A).
-lowers([A | Xs]) --> lower(A), lowers(Xs).
+lowers(A) --> when_parsing(parse_lowers(A), generate_lowers(A)).
+
+generate_lowers(A) --> {atom_chars(A, Cs)}, chars(Cs).
+chars([]) --> [].
+chars([C | Cs]) --> [C], chars(Cs).
+
+parse_lowers(A) --> lowers_chars(Cs), {atom_chars(A, Cs)}.
+lowers_chars([A]) --> lower(A).
+lowers_chars([A | Xs]) --> lower(A), lowers_chars(Xs).
 
 % a-z
-lower(A) --> [A], {atom_codes(A, [N]), between(97, 122, N)}.
+lower(A) --> [A], {between(97, 122, N), atom_codes(A, [N])}.
 
 charset_meta('\\').
 % charset_meta('^').    % [^^] and [a^] is valid pattern
@@ -103,7 +113,11 @@ tOption --> ['?'].
 tRepeatLeft --> ['{'].
 tRepeatMiddle --> [','].
 tRepeatRight --> ['}'].
-tGroupLeft --> ['('].
+tZeroMatchLeft --> ['(', '?', '='].
+tZeroMatchRight --> [')'].
+tCaptureLeft --> ['('].
+tCaptureRight --> [')'].
+tGroupLeft --> ['(', '?', ':'].
 tGroupRight --> [')'].
 tIncludeLeft --> ['['].
 tIncludeRight --> [']'].

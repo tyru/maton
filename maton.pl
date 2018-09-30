@@ -1,4 +1,3 @@
-:- initialization main.
 
 main :-
   (
@@ -53,7 +52,6 @@ consult_rule(Module) :-
   Module:maton_rule.
 
 loop(Opts, Args) :-
-  repeat,
   get_input(Args, In, Len),
   convert(Opts, In, Out),
   writeln(Out),
@@ -76,8 +74,15 @@ convert(Opts, In, Out) :-
   convert(From, In, To, Out).
 convert(From, In, To, Out) :-
   % In -> Node
-  string_chars(In, InCs),
+  atom_chars(In, InCs),
   phrase(From:toplevel(Node), InCs),
   % Node -> Out
   phrase(To:toplevel(Node), OutCs),
-  atomic_list_concat(OutCs, Out).
+  xxx_list_string(OutCs, Out).
+
+xxx_list_string([], '') :- !.
+xxx_list_string([A | Ts], A_) :-
+  atom(A), !,
+  atom_string(A, A1), xxx_list_string(Ts, A2), atom_concat(A1, A2, A_).
+xxx_list_string([T | Ts], A_) :-
+  term_string(T, A1), xxx_list_string(Ts, A2), atom_concat(A1, A2, A_).

@@ -25,6 +25,8 @@ quant(repeat(A, N)) -->    % {n}
 quant(repeat(A, N, M)) -->    % {n,m}
   tRepeatLeft, group(A), tRepeatMiddle, digits(N), tRepeatMiddle, digits(M), tRepeatRight,
   {N =< M}.
+quant(zeromatch(A)) -->    % (?=toplevel)
+  tZeroMatchLeft, toplevel(A), tZeroMatchRight.
 quant(A) --> group(A).
 
 % 1 or more digits
@@ -36,6 +38,7 @@ parse_digits(C, N) --> digit(D), {C1 is C * 10 + D}, parse_digits(C1, N).
 parse_digits(C, N) --> digit(D), {N is C * 10 + D}.
 digit(D) --> [C], {atom_number(C, D)}.
 
+group(capture(A)) --> tCaptureLeft, toplevel(A), tCaptureRight.
 group(group(A)) --> tGroupLeft, toplevel(A), tGroupRight.
 group(A) --> charset(A).
 
@@ -108,6 +111,10 @@ tOptionRight --> [')'].
 tRepeatLeft --> ['r', 'e', 'p', 'e', 'a', 't', '('].
 tRepeatMiddle --> [','].
 tRepeatRight --> [')'].
+tZeroMatchLeft --> ['z', 'e', 'r', 'o', 'm', 'a', 't', 'c', 'h', '('].
+tZeroMatchRight --> [')'].
+tCaptureLeft --> ['c', 'a', 'p', 't', 'u', 'r', 'e', '('].
+tCaptureRight --> [')'].
 tGroupLeft --> ['g', 'r', 'o', 'u', 'p', '('].
 tGroupRight --> [')'].
 tIncludeLeft --> ['i', 'n', 'c', 'l', 'u', 'd', 'e', '('].
