@@ -55,17 +55,23 @@ group(capture(A)) --> tCaptureLeft, toplevel(A), tCaptureRight.
 group(group(A)) --> tGroupLeft, toplevel(A), tGroupRight.
 group(A) --> charset(A).
 
-charset(exclude(A)) --> tExcludeLeft, charset1(A), tExcludeRight.
-charset(include(A)) --> tIncludeLeft, charset1(A), tIncludeRight.
+charset(exclude(A)) --> tExcludeLeft, charset_exclude(A), tExcludeRight.
+charset(include(A)) --> tIncludeLeft, charset_include(A), tIncludeRight.
 charset(A) --> char(A).
 
-charset1([]) --> [].
-charset1([range(A, B) | Xs]) --> [A, '-', B], charset1(Xs).
-charset1([char(A), char('-')]) --> [A, '-'].
-charset1([A | Xs]) --> ['\\', C], {esc(C, A)}, charset1(Xs).
-charset1([char(A) | Xs]) --> ['\\', C], {not(esc(C, _)), atom_concat('\\', C, A)}, charset1(Xs).
-charset1([char(A) | Xs]) --> [A], {not(charset_meta(A))}, charset1(Xs).
-charset1([class(Class) | Xs]) --> class(Class), charset1(Xs).
+charset_include([]) --> [].
+charset_include([First | Cs]) --> charset_first(First), charset_exclude(Cs).
+
+charset_first(char('^')) --> ['\\', '^'].
+charset_first(A) --> charset_exclude([A]), {A \= char('^')}.
+
+charset_exclude([]) --> [].
+charset_exclude([range(A, B) | Xs]) --> [A, '-', B], charset_exclude(Xs).
+charset_exclude([char(C), char('-')]) --> [C, '-'].
+charset_exclude([A | Xs]) --> ['\\', C], {esc(C, A)}, charset_exclude(Xs).
+charset_exclude([char(C) | Xs]) --> ['\\', C], {not(esc(C, _)), charset_meta(C)}, charset_exclude(Xs).
+charset_exclude([char(C) | Xs]) --> [C], {not(charset_meta(C))}, charset_exclude(Xs).
+charset_exclude([class(Class) | Xs]) --> class(Class), charset_exclude(Xs).
 
 class(A) --> ['[', ':'], lowers(A), [':', ']'].
 
@@ -90,7 +96,7 @@ char(dot) --> tDot.
 char(bol) --> tBOL.
 char(eol) --> tEOL.
 char(A) --> ['\\', C], {esc(C, A)}.
-char(char(A)) --> ['\\', C], {not(esc(C, _)), atom_concat('\\', C, A)}.
+char(char(C)) --> ['\\', C], {not(esc(C, _)), meta(C)}.
 char(char(C)) --> [C], {not(meta(C))}.
 
 esc('n', nl).
@@ -120,23 +126,23 @@ tOption --> ['?'].
 tRepeatLeft --> ['{'].
 tRepeatMiddle --> [','].
 tRepeatRight --> ['}'].
-tZeroMatchLeft --> ['(', '?', '='].
+tZeroMatchLeft --> chars('(?=').
 tZeroMatchRight --> [')'].
-tZeroNonMatchLeft --> ['(', '?', '!'].
+tZeroNonMatchLeft --> chars('(?!').
 tZeroNonMatchRight --> [')'].
-tZeroPredMatchLeft --> ['(', '?', '<', '='].
+tZeroPredMatchLeft --> chars('(?<=').
 tZeroPredMatchRight --> [')'].
-tZeroPredNonMatchLeft --> ['(', '?', '<', '!'].
+tZeroPredNonMatchLeft --> chars('(?<!').
 tZeroPredNonMatchRight --> [')'].
-tZeroNoRetryMatchLeft --> ['(', '?', '>'].
+tZeroNoRetryMatchLeft --> chars('(?>').
 tZeroNoRetryMatchRight --> [')'].
 tCaptureLeft --> ['('].
 tCaptureRight --> [')'].
-tGroupLeft --> ['(', '?', ':'].
+tGroupLeft --> chars('(?:').
 tGroupRight --> [')'].
 tIncludeLeft --> ['['].
 tIncludeRight --> [']'].
-tExcludeLeft --> ['[', '^'].
+tExcludeLeft --> chars('[^').
 tExcludeRight --> [']'].
 tDot --> ['.'].
 tBOL --> ['^'].

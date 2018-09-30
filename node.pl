@@ -64,13 +64,10 @@ charset(A) --> char(A).
 charset1([]) --> [].
 charset1([range(A, B) | Xs]) --> range(A, B), comma(Xs), charset1(Xs).
 charset1([class(Class) | Xs]) --> class(Class), comma(Xs), charset1(Xs).
-charset1([A | Xs]) --> cs_char(A), comma(Xs), charset1(Xs).
+charset1([char(C) | Xs]) --> tCharLeft, [C], tCharRight, comma(Xs), charset1(Xs).
+charset1([A | Xs]) --> {esc(A)}, chars(A), comma(Xs), charset1(Xs).
 
 range(A, B) --> tRangeLeft, [A], tComma, [B], tRangeRight.
-
-cs_char(A) --> ['\\', C], {esc(C, A)}.
-cs_char(char(A)) --> tCharLeft, ['\\', C], tCharRight, {not(esc(C, _)), atom_concat('\\', C, A)}.
-cs_char(char(C)) --> tCharLeft, [C], tCharRight, {not(charset_meta(C))}.
 
 class(A) --> tClassLeft, lowers(A), tClassRight.
 
@@ -86,11 +83,6 @@ lowers_chars([A | Xs]) --> lower(A), lowers_chars(Xs).
 % a-z
 lower(A) --> [A], {between(97, 122, N), atom_codes(A, [N])}.
 
-charset_meta('\\').
-% charset_meta('^').    % [^^] and [a^] is valid pattern
-charset_meta('[').
-charset_meta(']').
-
 % Add comma if given list is non-empty
 comma([]) --> [].
 comma([_|_]) --> tComma.
@@ -98,29 +90,14 @@ comma([_|_]) --> tComma.
 char(dot) --> tDot.
 char(bol) --> tBOL.
 char(eol) --> tEOL.
-char(A) --> {esc(_, A)}, chars(A).
-char(char(A)) --> tCharLeft, ['\\', C], tCharRight, {not(esc(C, _)), atom_concat('\\', C, A)}.
-char(char(C)) --> tCharLeft, [C], tCharRight, {not(meta(C))}.
+char(A) --> {esc(A)}, chars(A).
+char(char(C)) --> tCharLeft, [C], tCharRight.
 
-esc('n', nl).
-esc('e', esc).
-esc('t', tab).
-esc('r', cr).
-esc('b', bs).
-
-meta('(').
-meta(')').
-meta('[').
-meta(']').
-meta('{').
-meta('}').
-meta('*').
-meta('+').
-meta('?').
-meta('.').
-meta('^').
-meta('$').
-meta('\\').
+esc(nl).
+esc(esc).
+esc(tab).
+esc(cr).
+esc(bs).
 
 tOrLeft --> chars('or(').
 tOrRight --> [')'].

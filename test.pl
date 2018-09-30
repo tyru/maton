@@ -3,8 +3,10 @@
 :- consult(vim).
 :- consult(node).
 
-pair(M1 = P1, M2 = P2, L) :- member(M1 = P1, L), member(M2 = P2, L), compare(<, M1, M2).
+pair(M1 = P1, M2 = P2, L) :-
+  member(M1 = P1, L), member(M2 = P2, L), compare(<, M1, M2).
 bidirectionally_convertible(L) :-
+  length(L, N), N >= 2,
   forall(
     pair(M1 = P1, M2 = P2, L),
     bidirectionally_convertible(M1, P1, M2, P2)
@@ -70,16 +72,11 @@ bidirectionally_convertible(ModA, PatA, ModB, PatB) :-
       vim = 'a',
       node = '[char(a)]'
     ]).
-  test(esc_a, [nondet]) :-
-    bidirectionally_convertible([
-      ereg = '\\a',
-      vim = '\\a',
-      node = '[char(\\a)]'
-    ]).
-  test('esc_(', [nondet, blocked(wtf)]) :-
+  test('esc_(', [nondet]) :-
     bidirectionally_convertible([
       ereg = '\\(',
-      vim = '('
+      vim = '(',
+      node = '[char(()]'
     ]).
 :- end_tests(char).
 
@@ -132,24 +129,18 @@ bidirectionally_convertible(ModA, PatA, ModB, PatB) :-
       vim = '\\(a\\)b\\(c\\)',
       node = '[capture([char(a)]),char(b),capture([char(c)])]'
     ]).
-  test(group_or1, [nondet, true(Node == [char(z),capture(or([char(a)],[char(b)]))]),
-                    blocked(wtf)]) :-
-    % bidirectionally_convertible([
-    %   ereg = 'z(a|b)',
-    %   vim = 'z\\(a\\|b\\)',
-    %   node = '[char(z),capture(or([char(a)],[char(b)]))]'
-    % ]).
-    string_chars("z\\(a\\|b\\)", Cs),
-    phrase(vim:toplevel(Node), Cs).
-  test(group_or2, [nondet, true(Node == [char(z),capture(or([char(a),char(b)],[char(c)]))]),
-                    blocked(wtf)]) :-
-    % bidirectionally_convertible([
-    %   ereg = 'z(ab|c)',
-    %   vim = 'z\\(ab\\|c\\)',
-    %   node = '[char(z),capture(or([char(a),char(b)],[char(c)]))]'
-    % ]).
-    string_chars("z\\(ab\\|b\\)", Cs),
-    phrase(vim:toplevel(Node), Cs).
+  test(group_or1, [nondet]) :-
+    bidirectionally_convertible([
+      ereg = 'z(a|b)',
+      vim = 'z\\(a\\|b\\)',
+      node = '[char(z),capture(or([char(a)],[char(b)]))]'
+    ]).
+  test(group_or2, [nondet]) :-
+    bidirectionally_convertible([
+      ereg = 'z(ab|c)',
+      vim = 'z\\(ab\\|c\\)',
+      node = '[char(z),capture(or([char(a),char(b)],[char(c)]))]'
+    ]).
 :- end_tests(group_and_or).
 
 :- begin_tests(quantifier).
@@ -263,14 +254,13 @@ bidirectionally_convertible(ModA, PatA, ModB, PatB) :-
     ]).
 :- end_tests(quantifier).
 
-regexp_rules([ereg, vim]).
-
 :- begin_tests(include_and_exclude).
 
+  regexp_rules([ereg, vim]).
   invert_charset(Cs, ExCs) :-
     append(['[' | Middle], [']'], Cs),
     append(['[', '^' | Middle], [']'], ExCs).
-
+  add_pattern(Cs, M, M = A) :- atom_chars(A, Cs).
   test_include_and_exclude(Pat, Set) :-
     regexp_rules(Mods),
     test_include_and_exclude(Mods, Pat, Set).
@@ -285,7 +275,6 @@ regexp_rules([ereg, vim]).
     append(L2, [node = Exclude], ExcludeList),
     bidirectionally_convertible(IncludeList),
     bidirectionally_convertible(ExcludeList).
-  add_pattern(Cs, M, M = A) :- atom_chars(A, Cs).
 
   test(empty, [nondet]) :-
     test_include_and_exclude("[]", '[]').
@@ -314,27 +303,31 @@ regexp_rules([ereg, vim]).
     test_include_and_exclude("[$]", '[char($)]').
 
   test(right_bracket, [nondet]) :-
-    test_include_and_exclude("[\\\\]", '[char(\\\\)]').
-  test(hat, [nondet]) :-
-    test_include_and_exclude("[\\^]", '[char(\\^)]').
+    test_include_and_exclude("[\\\\]", '[char(\\)]').
   test(left_bracket, [nondet]) :-
-    test_include_and_exclude("[\\[]", '[char(\\[)]').
+    test_include_and_exclude("[\\[]", '[char([)]').
   test(right_bracket, [nondet]) :-
-    test_include_and_exclude("[\\]]", '[char(\\])]').
+    test_include_and_exclude("[\\]]", '[char(])]').
 
-  test(exclude_hat, [nondet]) :-
+  test(include_hat1, [nondet]) :-
+    bidirectionally_convertible([
+      ereg = '[\\^]',
+      vim = '[\\^]',
+      node = '[include([char(^)])]'
+    ]).
+  test(exclude_hat1, [nondet]) :-
     bidirectionally_convertible([
       ereg = '[^]',
       vim = '[^]',
       node = '[exclude([])]'
     ]).
-  test(exclude_hat, [nondet]) :-
+  test(exclude_hat2, [nondet]) :-
     bidirectionally_convertible([
       ereg = '[^^]',
       vim = '[^^]',
       node = '[exclude([char(^)])]'
     ]).
-  test(exclude_hat, [nondet]) :-
+  test(exclude_hat3, [nondet]) :-
     bidirectionally_convertible([
       ereg = '[a^]',
       vim = '[a^]',
@@ -495,45 +488,69 @@ regexp_rules([ereg, vim]).
 
 
 :- begin_tests(error).
-  test(error1, [fail]) :-
+  test(error_1_ereg, [fail]) :-
     string_chars("(", Cs),
     phrase(ereg:toplevel(Node), Cs),
     format('Node = ~q~n', [Node]).
-  test(error2, [fail]) :-
-    string_chars(")", Cs),
-    phrase(ereg:toplevel(Node), Cs),
+  test(error_1_vim, [fail]) :-
+    string_chars("\\(", Cs),
+    phrase(vim:toplevel(Node), Cs),
     format('Node = ~q~n', [Node]).
-  test(error3, [fail]) :-
+  test(error_2_ereg, [fail]) :-
     string_chars("[", Cs),
     phrase(ereg:toplevel(Node), Cs),
     format('Node = ~q~n', [Node]).
-  test(error4, [fail]) :-
-    string_chars("]", Cs),
-    phrase(ereg:toplevel(Node), Cs),
+  test(error_2_vim, [fail]) :-
+    string_chars("[", Cs),
+    phrase(vim:toplevel(Node), Cs),
     format('Node = ~q~n', [Node]).
-  test(error5, [fail]) :-
+  test(error_3_ereg, [fail]) :-
     string_chars("{", Cs),
     phrase(ereg:toplevel(Node), Cs),
     format('Node = ~q~n', [Node]).
-  test(error6, [fail]) :-
-    string_chars("}", Cs),
-    phrase(ereg:toplevel(Node), Cs),
+  test(error_3_ereg, [fail]) :-
+    string_chars("\\{", Cs),
+    phrase(vim:toplevel(Node), Cs),
     format('Node = ~q~n', [Node]).
-  test(error7, [fail]) :-
+  test(error_4_ereg, [fail]) :-
     string_chars("*", Cs),
     phrase(ereg:toplevel(Node), Cs),
     format('Node = ~q~n', [Node]).
-  test(error8, [fail]) :-
+  test(error_4_vim, [fail]) :-
+    string_chars("*", Cs),
+    phrase(vim:toplevel(Node), Cs),
+    format('Node = ~q~n', [Node]).
+  test(error_5_ereg, [fail]) :-
     string_chars("+", Cs),
     phrase(ereg:toplevel(Node), Cs),
     format('Node = ~q~n', [Node]).
-  test(error9, [fail]) :-
+  test(error_5_vim, [fail]) :-
+    string_chars("\\+", Cs),
+    phrase(vim:toplevel(Node), Cs),
+    format('Node = ~q~n', [Node]).
+  test(error_6_ereg, [fail]) :-
     string_chars("?", Cs),
     phrase(ereg:toplevel(Node), Cs),
     format('Node = ~q~n', [Node]).
-  test(error10, [fail]) :-
+  test(error_6_vim, [fail]) :-
+    string_chars("\\?", Cs),
+    phrase(vim:toplevel(Node), Cs),
+    format('Node = ~q~n', [Node]).
+  test(error_7_ereg, [fail]) :-
     string_chars("\\", Cs),
     phrase(ereg:toplevel(Node), Cs),
+    format('Node = ~q~n', [Node]).
+  test(error_7_vim, [fail]) :-
+    string_chars("\\", Cs),
+    phrase(vim:toplevel(Node), Cs),
+    format('Node = ~q~n', [Node]).
+  test(error_8_ereg, [fail]) :-
+    string_chars("\\a", Cs),
+    phrase(ereg:toplevel(Node), Cs),
+    format('Node = ~q~n', [Node]).
+  test(error_8_vim, [fail]) :-
+    string_chars("\\a", Cs),
+    phrase(vim:toplevel(Node), Cs),
     format('Node = ~q~n', [Node]).
 :- end_tests(error).
 
