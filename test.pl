@@ -1,5 +1,5 @@
 :- consult(maton).
-:- consult(ereg).
+:- consult(ere).
 :- consult(vim).
 :- consult(node).
 
@@ -20,61 +20,61 @@ bidirectionally_convertible(ModA, PatA, ModB, PatB) :-
 :- begin_tests(char).
   test(dot, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '.',
+      ere = '.',
       vim = '.',
       node = '[dot]'
     ]).
   test(bol, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '^',
+      ere = '^',
       vim = '^',
       node = '[bol]'
     ]).
   test(eol, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '$',
+      ere = '$',
       vim = '$',
       node = '[eol]'
     ]).
   test(nl, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '\\n',
+      ere = '\\n',
       vim = '\\n',
       node = '[nl]'
     ]).
   test(esc, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '\\e',
+      ere = '\\e',
       vim = '\\e',
       node = '[esc]'
     ]).
   test(tab, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '\\t',
+      ere = '\\t',
       vim = '\\t',
       node = '[tab]'
     ]).
   test(cr, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '\\r',
+      ere = '\\r',
       vim = '\\r',
       node = '[cr]'
     ]).
   test(bs, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '\\b',
+      ere = '\\b',
       vim = '\\b',
       node = '[bs]'
     ]).
   test(char, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'a',
+      ere = 'a',
       vim = 'a',
       node = '[char(a)]'
     ]).
   test('esc_(', [nondet]) :-
     bidirectionally_convertible([
-      ereg = '\\(',
+      ere = '\\(',
       vim = '(',
       node = '[char(()]'
     ]).
@@ -83,61 +83,61 @@ bidirectionally_convertible(ModA, PatA, ModB, PatB) :-
 :- begin_tests(group_and_or).
   test(or1, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'a|b',
+      ere = 'a|b',
       vim = 'a\\|b',
       node = 'or([char(a)],[char(b)])'
     ]).
   test(or2, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'ab|c',
+      ere = 'ab|c',
       vim = 'ab\\|c',
       node = 'or([char(a),char(b)],[char(c)])'
     ]).
   test(empty_or1, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '|b',
+      ere = '|b',
       vim = '\\|b',
       node = 'or([],[char(b)])'
     ]).
   test(empty_or2) :-
     bidirectionally_convertible([
-      ereg = 'a|',
+      ere = 'a|',
       vim = 'a\\|',
       node = 'or([char(a)],[])'
     ]).
   test(group1, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '(a)',
+      ere = '(a)',
       vim = '\\(a\\)',
       node = '[capture([char(a)])]'
     ]).
   test(group2, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '(ab)',
+      ere = '(ab)',
       vim = '\\(ab\\)',
       node = '[capture([char(a),char(b)])]'
     ]).
   test(group3, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '(a)(b)',
+      ere = '(a)(b)',
       vim = '\\(a\\)\\(b\\)',
       node = '[capture([char(a)]),capture([char(b)])]'
     ]).
   test(group4, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '(a)b(c)',
+      ere = '(a)b(c)',
       vim = '\\(a\\)b\\(c\\)',
       node = '[capture([char(a)]),char(b),capture([char(c)])]'
     ]).
   test(group_or1, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'z(a|b)',
+      ere = 'z(a|b)',
       vim = 'z\\(a\\|b\\)',
       node = '[char(z),capture(or([char(a)],[char(b)]))]'
     ]).
   test(group_or2, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'z(ab|c)',
+      ere = 'z(ab|c)',
       vim = 'z\\(ab\\|c\\)',
       node = '[char(z),capture(or([char(a),char(b)],[char(c)]))]'
     ]).
@@ -146,109 +146,109 @@ bidirectionally_convertible(ModA, PatA, ModB, PatB) :-
 :- begin_tests(quantifier).
   test(star1, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'a*',
+      ere = 'a*',
       vim = 'a*',
       node = '[star(char(a))]'
     ]).
   test(star2, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '(ab)*',
+      ere = '(ab)*',
       vim = '\\(ab\\)*',
       node = '[star(capture([char(a),char(b)]))]'
     ]).
   test(plus1, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'a+',
+      ere = 'a+',
       vim = 'a\\+',
       node = '[plus(char(a))]'
     ]).
   test(plus2, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '(ab)+',
+      ere = '(ab)+',
       vim = '\\(ab\\)\\+',
       node = '[plus(capture([char(a),char(b)]))]'
     ]).
   test(option1, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'a?',
+      ere = 'a?',
       vim = 'a\\?',
       node = '[option(char(a))]'
     ]).
   test(option2, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '(ab)?',
+      ere = '(ab)?',
       vim = '\\(ab\\)\\?',
       node = '[option(capture([char(a),char(b)]))]'
     ]).
   test(repeat_a_1, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'a{1}',
+      ere = 'a{1}',
       vim = 'a\\{1}',
       node = '[repeat(char(a),1)]'
     ]).
   test(repeat_group_1, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '(ab){1}',
+      ere = '(ab){1}',
       vim = '\\(ab\\)\\{1}',
       node = '[repeat(capture([char(a),char(b)]),1)]'
     ]).
   test(repeat_a_0, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'a{0}',
+      ere = 'a{0}',
       vim = 'a\\{0}',
       node = '[repeat(char(a),0)]'
     ]).
   test(repeat_a_11, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'a{11}',
+      ere = 'a{11}',
       vim = 'a\\{11}',
       node = '[repeat(char(a),11)]'
     ]).
   test(repeat_a_12, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'a{1,2}',
+      ere = 'a{1,2}',
       vim = 'a\\{1,2}',
       node = '[repeat(char(a),1,2)]'
     ]).
   test(repeat_a_22, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'a{2,2}',
+      ere = 'a{2,2}',
       vim = 'a\\{2,2}',
       node = '[repeat(char(a),2,2)]'
     ]).
   test(repeat_a_11_22, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'a{11,22}',
+      ere = 'a{11,22}',
       vim = 'a\\{11,22}',
       node = '[repeat(char(a),11,22)]'
     ]).
   test(repeat_a_1m, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'a{1,}',
+      ere = 'a{1,}',
       vim = 'a\\{1,}',
       node = '[repeat(char(a),1,nil)]'
     ]).
   test(repeat_a_11m, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'a{11,}',
+      ere = 'a{11,}',
       vim = 'a\\{11,}',
       node = '[repeat(char(a),11,nil)]'
     ]).
   test(repeat_a_n1, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'a{,1}',
+      ere = 'a{,1}',
       vim = 'a\\{,1}',
       node = '[repeat(char(a),nil,1)]'
     ]).
   test(repeat_a_n11, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'a{,11}',
+      ere = 'a{,11}',
       vim = 'a\\{,11}',
       node = '[repeat(char(a),nil,11)]'
     ]).
   test(repeat_a_nm, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'a{,}',
+      ere = 'a{,}',
       vim = 'a\\{,}',
       node = '[repeat(char(a),nil,nil)]'
     ]).
@@ -256,7 +256,7 @@ bidirectionally_convertible(ModA, PatA, ModB, PatB) :-
 
 :- begin_tests(include_and_exclude).
 
-  regexp_rules([ereg, vim]).
+  regexp_rules([ere, vim]).
   invert_charset(Cs, ExCs) :-
     append(['[' | Middle], [']'], Cs),
     append(['[', '^' | Middle], [']'], ExCs).
@@ -311,25 +311,25 @@ bidirectionally_convertible(ModA, PatA, ModB, PatB) :-
 
   test(include_hat1, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '[\\^]',
+      ere = '[\\^]',
       vim = '[\\^]',
       node = '[include([char(^)])]'
     ]).
   test(exclude_hat1, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '[^]',
+      ere = '[^]',
       vim = '[^]',
       node = '[exclude([])]'
     ]).
   test(exclude_hat2, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '[^^]',
+      ere = '[^^]',
       vim = '[^^]',
       node = '[exclude([char(^)])]'
     ]).
   test(exclude_hat3, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '[a^]',
+      ere = '[a^]',
       vim = '[a^]',
       node = '[include([char(a),char(^)])]'
     ]).
@@ -339,148 +339,148 @@ bidirectionally_convertible(ModA, PatA, ModB, PatB) :-
 
   test(or, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'a|b',
+      ere = 'a|b',
       vim = 'a\\|b',
       node = 'or([char(a)],[char(b)])'
     ]).
   test(star, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'a*',
+      ere = 'a*',
       vim = 'a*',
       node = '[star(char(a))]'
     ]).
   test(plus, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'a+',
+      ere = 'a+',
       vim = 'a\\+',
       node = '[plus(char(a))]'
     ]).
 
   test(option1, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'a?',
+      ere = 'a?',
       vim = 'a\\?',
       node = '[option(char(a))]'
     ]).
   test(option2, [nondet]) :-
-    maton:convert(vim, 'a\\?', ereg, Res1),
+    maton:convert(vim, 'a\\?', ere, Res1),
     assertion(Res1 = 'a?'),
-    maton:convert(vim, 'a\\=', ereg, Res2),
+    maton:convert(vim, 'a\\=', ere, Res2),
     assertion(Res2 = 'a?').
 
   test(repeat1, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'a{1,2}',
+      ere = 'a{1,2}',
       vim = 'a\\{1,2}',
       node = '[repeat(char(a),1,2)]'
     ]).
   test(repeat2, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'a{,2}',
+      ere = 'a{,2}',
       vim = 'a\\{,2}',
       node = '[repeat(char(a),nil,2)]'
     ]).
   test(repeat3, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'a{1,}',
+      ere = 'a{1,}',
       vim = 'a\\{1,}',
       node = '[repeat(char(a),1,nil)]'
     ]).
   test(repeat4, [nondet]) :-
     bidirectionally_convertible([
-      ereg = 'a{,}',
+      ere = 'a{,}',
       vim = 'a\\{,}',
       node = '[repeat(char(a),nil,nil)]'
     ]).
 
   test(zero_match1, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '(?=a)',
+      ere = '(?=a)',
       vim = 'a\\@=',
       node = '[zero_match([char(a)])]'
     ]).
   test(zero_match2, [nondet]) :-
-    maton:convert(ereg, '(?=abc)', vim, ResVim),
+    maton:convert(ere, '(?=abc)', vim, ResVim),
     assertion(ResVim = '\\%(abc\\)\\@='),
-    maton:convert(vim, '\\%(abc\\)\\@=', ereg, ResEreg),
+    maton:convert(vim, '\\%(abc\\)\\@=', ere, ResEreg),
     assertion(ResEreg = '(?=(?:abc))').
 
   test(zero_non_match1, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '(?!a)',
+      ere = '(?!a)',
       vim = 'a\\@!',
       node = '[zero_non_match([char(a)])]'
     ]).
   test(zero_non_match2, [nondet]) :-
-    maton:convert(ereg, '(?!abc)', vim, ResVim),
+    maton:convert(ere, '(?!abc)', vim, ResVim),
     assertion(ResVim = '\\%(abc\\)\\@!'),
-    maton:convert(vim, '\\%(abc\\)\\@!', ereg, ResEreg),
+    maton:convert(vim, '\\%(abc\\)\\@!', ere, ResEreg),
     assertion(ResEreg = '(?!(?:abc))').
 
   test(zero_pred_match1, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '(?<=a)',
+      ere = '(?<=a)',
       vim = 'a\\@<=',
       node = '[zero_pred_match([char(a)])]'
     ]).
   test(zero_pred_match2, [nondet]) :-
-    maton:convert(ereg, '(?<=abc)', vim, ResVim),
+    maton:convert(ere, '(?<=abc)', vim, ResVim),
     assertion(ResVim = '\\%(abc\\)\\@<='),
-    maton:convert(vim, '\\%(abc\\)\\@<=', ereg, ResEreg),
+    maton:convert(vim, '\\%(abc\\)\\@<=', ere, ResEreg),
     assertion(ResEreg = '(?<=(?:abc))').
 
   test(zero_pred_non_match1, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '(?<!a)',
+      ere = '(?<!a)',
       vim = 'a\\@<!',
       node = '[zero_pred_non_match([char(a)])]'
     ]).
   test(zero_pred_non_match2, [nondet]) :-
-    maton:convert(ereg, '(?<!abc)', vim, ResVim),
+    maton:convert(ere, '(?<!abc)', vim, ResVim),
     assertion(ResVim = '\\%(abc\\)\\@<!'),
-    maton:convert(vim, '\\%(abc\\)\\@<!', ereg, ResEreg),
+    maton:convert(vim, '\\%(abc\\)\\@<!', ere, ResEreg),
     assertion(ResEreg = '(?<!(?:abc))').
 
   test(zero_no_retry_match1, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '(?>a)',
+      ere = '(?>a)',
       vim = 'a\\@>',
       node = '[zero_no_retry_match([char(a)])]'
     ]).
   test(zero_no_retry_match2, [nondet]) :-
-    maton:convert(ereg, '(?>abc)', vim, ResVim),
+    maton:convert(ere, '(?>abc)', vim, ResVim),
     assertion(ResVim = '\\%(abc\\)\\@>'),
-    maton:convert(vim, '\\%(abc\\)\\@>', ereg, ResEreg),
+    maton:convert(vim, '\\%(abc\\)\\@>', ere, ResEreg),
     assertion(ResEreg = '(?>(?:abc))').
 
   test(include1, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '[a]',
+      ere = '[a]',
       vim = '[a]',
       node = '[include([char(a)])]'
     ]).
   test(include2, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '[[:lower:]]',
+      ere = '[[:lower:]]',
       vim  = '[[:lower:]]',
       node = '[include([class(lower)])]'
     ]).
   test(exclude, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '[^a]',
+      ere = '[^a]',
       vim  = '[^a]',
       node = '[exclude([char(a)])]'
     ]).
 
   test(group, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '(?:a)',
+      ere = '(?:a)',
       vim = '\\%(a\\)',
       node = '[group([char(a)])]'
     ]).
   test(capture, [nondet]) :-
     bidirectionally_convertible([
-      ereg = '(a)',
+      ere = '(a)',
       vim = '\\(a\\)',
       node = '[capture([char(a)])]'
     ]).
@@ -490,7 +490,7 @@ bidirectionally_convertible(ModA, PatA, ModB, PatB) :-
 :- begin_tests(error).
   test(error_1_ereg, [fail]) :-
     string_chars("(", Cs),
-    phrase(ereg:toplevel(Node), Cs),
+    phrase(ere:toplevel(Node), Cs),
     format('Node = ~q~n', [Node]).
   test(error_1_vim, [fail]) :-
     string_chars("\\(", Cs),
@@ -498,7 +498,7 @@ bidirectionally_convertible(ModA, PatA, ModB, PatB) :-
     format('Node = ~q~n', [Node]).
   test(error_2_ereg, [fail]) :-
     string_chars("[", Cs),
-    phrase(ereg:toplevel(Node), Cs),
+    phrase(ere:toplevel(Node), Cs),
     format('Node = ~q~n', [Node]).
   test(error_2_vim, [fail]) :-
     string_chars("[", Cs),
@@ -506,7 +506,7 @@ bidirectionally_convertible(ModA, PatA, ModB, PatB) :-
     format('Node = ~q~n', [Node]).
   test(error_3_ereg, [fail]) :-
     string_chars("{", Cs),
-    phrase(ereg:toplevel(Node), Cs),
+    phrase(ere:toplevel(Node), Cs),
     format('Node = ~q~n', [Node]).
   test(error_3_ereg, [fail]) :-
     string_chars("\\{", Cs),
@@ -514,7 +514,7 @@ bidirectionally_convertible(ModA, PatA, ModB, PatB) :-
     format('Node = ~q~n', [Node]).
   test(error_4_ereg, [fail]) :-
     string_chars("*", Cs),
-    phrase(ereg:toplevel(Node), Cs),
+    phrase(ere:toplevel(Node), Cs),
     format('Node = ~q~n', [Node]).
   test(error_4_vim, [fail]) :-
     string_chars("*", Cs),
@@ -522,7 +522,7 @@ bidirectionally_convertible(ModA, PatA, ModB, PatB) :-
     format('Node = ~q~n', [Node]).
   test(error_5_ereg, [fail]) :-
     string_chars("+", Cs),
-    phrase(ereg:toplevel(Node), Cs),
+    phrase(ere:toplevel(Node), Cs),
     format('Node = ~q~n', [Node]).
   test(error_5_vim, [fail]) :-
     string_chars("\\+", Cs),
@@ -530,7 +530,7 @@ bidirectionally_convertible(ModA, PatA, ModB, PatB) :-
     format('Node = ~q~n', [Node]).
   test(error_6_ereg, [fail]) :-
     string_chars("?", Cs),
-    phrase(ereg:toplevel(Node), Cs),
+    phrase(ere:toplevel(Node), Cs),
     format('Node = ~q~n', [Node]).
   test(error_6_vim, [fail]) :-
     string_chars("\\?", Cs),
@@ -538,7 +538,7 @@ bidirectionally_convertible(ModA, PatA, ModB, PatB) :-
     format('Node = ~q~n', [Node]).
   test(error_7_ereg, [fail]) :-
     string_chars("\\", Cs),
-    phrase(ereg:toplevel(Node), Cs),
+    phrase(ere:toplevel(Node), Cs),
     format('Node = ~q~n', [Node]).
   test(error_7_vim, [fail]) :-
     string_chars("\\", Cs),
@@ -546,7 +546,7 @@ bidirectionally_convertible(ModA, PatA, ModB, PatB) :-
     format('Node = ~q~n', [Node]).
   test(error_8_ereg, [fail]) :-
     string_chars("\\a", Cs),
-    phrase(ereg:toplevel(Node), Cs),
+    phrase(ere:toplevel(Node), Cs),
     format('Node = ~q~n', [Node]).
   test(error_8_vim, [fail]) :-
     string_chars("\\a", Cs),

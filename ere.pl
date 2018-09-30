@@ -2,7 +2,7 @@
  * This rules defines conversion between internal node and
  * ERE (Extended Regular Expressions) syntax.
  */
-:- module(ereg, []).
+:- module(ere, []).
 :- consult(common).
 :- use_module(common).
 
