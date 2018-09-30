@@ -1,6 +1,7 @@
 :- consult(maton).
 :- consult(ereg).
 :- consult(vim).
+:- consult(node).
 
 :- begin_tests(char).
   test(dot, [nondet, true(Node == [dot])]) :-
@@ -108,36 +109,46 @@
   test(repeat_a_11_22, [nondet, true(Node = [repeat(char(a), 11, 22)])]) :-
     string_chars("a{11,22}", Cs),
     phrase(ereg:toplevel(Node), Cs).
-  test(repeat_a_1m, [nondet, true(Node = [repeat(char(a), 1, -1)])]) :-
+  test(repeat_a_1m, [nondet, true(Node = [repeat(char(a), 1, nil)])]) :-
     string_chars("a{1,}", Cs),
     phrase(ereg:toplevel(Node), Cs).
-  test(repeat_a_11m, [nondet, true(Node = [repeat(char(a), 11, -1)])]) :-
+  test(repeat_a_11m, [nondet, true(Node = [repeat(char(a), 11, nil)])]) :-
     string_chars("a{11,}", Cs),
     phrase(ereg:toplevel(Node), Cs).
-  test(repeat_a_n1, [nondet, true(Node = [repeat(char(a), 0, 1)])]) :-
+  test(repeat_a_n1, [nondet, true(Node = [repeat(char(a), nil, 1)])]) :-
     string_chars("a{,1}", Cs),
     phrase(ereg:toplevel(Node), Cs).
-  test(repeat_a_n11, [nondet, true(Node = [repeat(char(a), 0, 11)])]) :-
+  test(repeat_a_n11, [nondet, true(Node = [repeat(char(a), nil, 11)])]) :-
     string_chars("a{,11}", Cs),
     phrase(ereg:toplevel(Node), Cs).
-  test(repeat_a_nm, [nondet, true(Node = [repeat(char(a), 0, -1)])]) :-
+  test(repeat_a_nm, [nondet, true(Node = [repeat(char(a), nil, nil)])]) :-
     string_chars("a{,}", Cs),
     phrase(ereg:toplevel(Node), Cs).
 :- end_tests(quantifier).
 
+regexp_rules([ereg, vim]).
+
 :- begin_tests(include_and_exclude).
 
   invert_charset(Cs, ExCs) :-
-    append([['[' | Middle], [']']], Cs),
-    append([['[', '^' | Middle], [']']], ExCs).
+    append(['[' | Middle], [']'], Cs),
+    append(['[', '^' | Middle], [']'], ExCs).
 
   test_include_and_exclude(S, Set) :-
-    string_chars(S, Cs),
-    phrase(ereg:toplevel(Include), Cs),
-    assertion(Include = [include(Set)]),
-    invert_charset(Cs, ExCs),
-    phrase(ereg:toplevel(Exclude), ExCs),
-    assertion(Exclude = [exclude(Set)]).
+    regexp_rules(Mods),
+    test_include_and_exclude(Mods, S, Set).
+  test_include_and_exclude(Mods, S, Set) :-
+    forall(
+      member(M, Mods),
+      (
+        string_chars(S, Cs),
+        phrase(M:toplevel(Include), Cs),
+        assertion(Include = [include(Set)]),
+        invert_charset(Cs, ExCs),
+        phrase(M:toplevel(Exclude), ExCs),
+        assertion(Exclude = [exclude(Set)])
+      )
+    ).
 
   test(empty, [nondet]) :-
     test_include_and_exclude("[]", []).
@@ -186,27 +197,43 @@
 :- end_tests(include_and_exclude).
 
 :- begin_tests(conversion).
+  pair(M1 = P1, M2 = P2, L) :- member(M1 = P1, L), member(M2 = P2, L), compare(<, M1, M2).
+  bidirectionally_convertible(L) :-
+    forall(
+      pair(M1 = P1, M2 = P2, L),
+      bidirectionally_convertible(M1, P1, M2, P2)
+    ).
   bidirectionally_convertible(ModA, PatA, ModB, PatB) :-
     maton:convert(ModA, PatA, ModB, ResB),
     assertion(ResB = PatB),
     maton:convert(ModB, PatB, ModA, ResA),
     assertion(ResA = PatA).
-  pair(A, B, L) :- member(A, L), member(B, L), compare(<, A, B).
-  same_pattern(Mods, Pat) :-
-    forall(
-      pair(M1, M2, Mods),
-      bidirectionally_convertible(M1, Pat, M2, Pat)
-    ).
 
   test(or, [nondet]) :-
-    bidirectionally_convertible(ereg, 'a|b', vim, 'a\\|b').
+    bidirectionally_convertible([
+      ereg = 'a|b',
+      vim = 'a\\|b',
+      node = 'or([char(a)],[char(b)])'
+    ]).
   test(star, [nondet]) :-
-    same_pattern([ereg, vim], 'a*').
+    bidirectionally_convertible([
+      ereg = 'a*',
+      vim = 'a*',
+      node = '[star(char(a))]'
+    ]).
   test(plus, [nondet]) :-
-    bidirectionally_convertible(ereg, 'a+', vim, 'a\\+').
+    bidirectionally_convertible([
+      ereg = 'a+',
+      vim = 'a\\+',
+      node = '[plus(char(a))]'
+    ]).
 
   test(option1, [nondet]) :-
-    bidirectionally_convertible(ereg, 'a?', vim, 'a\\?').
+    bidirectionally_convertible([
+      ereg = 'a?',
+      vim = 'a\\?',
+      node = '[option(char(a))]'
+    ]).
   test(option2, [nondet]) :-
     maton:convert(vim, 'a\\?', ereg, Res1),
     assertion(Res1 = 'a?'),
@@ -214,33 +241,89 @@
     assertion(Res2 = 'a?').
 
   test(repeat1, [nondet]) :-
-    bidirectionally_convertible(ereg, 'a{1,2}', vim, 'a\\{1,2}').
+    bidirectionally_convertible([
+      ereg = 'a{1,2}',
+      vim = 'a\\{1,2}',
+      node = '[repeat(char(a),1,2)]'
+    ]).
   test(repeat2, [nondet]) :-
-    bidirectionally_convertible(ereg, 'a{,2}', vim, 'a\\{,2}').
+    bidirectionally_convertible([
+      ereg = 'a{,2}',
+      vim = 'a\\{,2}',
+      node = '[repeat(char(a),nil,2)]'
+    ]).
   test(repeat3, [nondet]) :-
-    bidirectionally_convertible(ereg, 'a{1,}', vim, 'a\\{1,}').
+    bidirectionally_convertible([
+      ereg = 'a{1,}',
+      vim = 'a\\{1,}',
+      node = '[repeat(char(a),1,nil)]'
+    ]).
   test(repeat4, [nondet]) :-
-    bidirectionally_convertible(ereg, 'a{,}', vim, 'a\\{,}').
+    bidirectionally_convertible([ereg = 'a{,}', vim = 'a\\{,}']).
 
-  test(zeromatch1, [nondet]) :-
-    bidirectionally_convertible(ereg, '(?=a)', vim, 'a\\@=').
-  test(zeromatch_ereg_to_vim, [nondet]) :-
+  test(zero_match1, [nondet]) :-
+    bidirectionally_convertible([ereg = '(?=a)', vim = 'a\\@=']).
+  test(zero_match2, [nondet]) :-
     maton:convert(ereg, '(?=abc)', vim, ResVim),
     assertion(ResVim = '\\%(abc\\)\\@='),
     maton:convert(vim, '\\%(abc\\)\\@=', ereg, ResEreg),
     assertion(ResEreg = '(?=(?:abc))').
 
+  test(zero_non_match1, [nondet]) :-
+    bidirectionally_convertible([ereg = '(?!a)', vim = 'a\\@!']).
+  test(zero_non_match2, [nondet]) :-
+    maton:convert(ereg, '(?!abc)', vim, ResVim),
+    assertion(ResVim = '\\%(abc\\)\\@!'),
+    maton:convert(vim, '\\%(abc\\)\\@!', ereg, ResEreg),
+    assertion(ResEreg = '(?!(?:abc))').
+
+  test(zero_pred_match1, [nondet]) :-
+    bidirectionally_convertible([ereg = '(?<=a)', vim = 'a\\@<=']).
+  test(zero_pred_match2, [nondet]) :-
+    maton:convert(ereg, '(?<=abc)', vim, ResVim),
+    assertion(ResVim = '\\%(abc\\)\\@<='),
+    maton:convert(vim, '\\%(abc\\)\\@<=', ereg, ResEreg),
+    assertion(ResEreg = '(?<=(?:abc))').
+
+  test(zero_pred_non_match1, [nondet]) :-
+    bidirectionally_convertible([ereg = '(?<!a)', vim = 'a\\@<!']).
+  test(zero_pred_non_match2, [nondet]) :-
+    maton:convert(ereg, '(?<!abc)', vim, ResVim),
+    assertion(ResVim = '\\%(abc\\)\\@<!'),
+    maton:convert(vim, '\\%(abc\\)\\@<!', ereg, ResEreg),
+    assertion(ResEreg = '(?<!(?:abc))').
+
+  test(zero_no_retry_match1, [nondet]) :-
+    bidirectionally_convertible([ereg = '(?>a)', vim = 'a\\@>']).
+  test(zero_no_retry_match2, [nondet]) :-
+    maton:convert(ereg, '(?>abc)', vim, ResVim),
+    assertion(ResVim = '\\%(abc\\)\\@>'),
+    maton:convert(vim, '\\%(abc\\)\\@>', ereg, ResEreg),
+    assertion(ResEreg = '(?>(?:abc))').
+
   test(include1, [nondet]) :-
-    same_pattern([ereg, vim], '[a]').
+    bidirectionally_convertible([
+      ereg = '[a]',
+      vim = '[a]',
+      node = '[include([char(a)])]'
+    ]).
   test(include2, [nondet]) :-
-    same_pattern([ereg, vim], '[[:lower:]]').
+    bidirectionally_convertible([
+      ereg = '[[:lower:]]',
+      vim  = '[[:lower:]]',
+      node = '[include([class(lower)])]'
+    ]).
   test(exclude, [nondet]) :-
-    same_pattern([ereg, vim], '[^a]').
+    bidirectionally_convertible([
+      ereg = '[^a]',
+      vim  = '[^a]',
+      node = '[exclude([char(a)])]'
+    ]).
 
   test(capture, [nondet]) :-
-    bidirectionally_convertible(ereg, '(?:a)', vim, '\\%(a\\)').
+    bidirectionally_convertible([ereg = '(?:a)', vim = '\\%(a\\)']).
   test(group, [nondet]) :-
-    bidirectionally_convertible(ereg, '(a)', vim, '\\(a\\)').
+    bidirectionally_convertible([ereg = '(a)', vim = '\\(a\\)']).
 :- end_tests(conversion).
 
 

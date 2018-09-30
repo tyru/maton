@@ -21,17 +21,25 @@ quant(plus(A)) --> group(A), tPlus.
 quant(option(A)) --> group(A), tOption.
 quant(repeat(A, N)) -->    % {n}
   group(A), tRepeatLeft, digits(N), tRepeatRight.
-quant(repeat(A, 0, -1)) -->    % {,}
+quant(repeat(A, nil, nil)) -->    % {,}
   group(A), tRepeatLeft, tRepeatMiddle, tRepeatRight.
-quant(repeat(A, 0, M)) -->    % {,m}
+quant(repeat(A, nil, M)) -->    % {,m}
   group(A), tRepeatLeft, tRepeatMiddle, digits(M), tRepeatRight.
-quant(repeat(A, N, -1)) -->    % {n,}
+quant(repeat(A, N, nil)) -->    % {n,}
   group(A), tRepeatLeft, digits(N), tRepeatMiddle, tRepeatRight.
 quant(repeat(A, N, M)) -->    % {n,m}
   group(A), tRepeatLeft, digits(N), tRepeatMiddle, digits(M), tRepeatRight,
   {N =< M}.
-quant(zeromatch(A)) -->    % (?=toplevel)
+quant(zero_match(A)) -->    % (?=abc)
   tZeroMatchLeft, toplevel(A), tZeroMatchRight.
+quant(zero_non_match(A)) -->    % (?!abc)
+  tZeroNonMatchLeft, toplevel(A), tZeroNonMatchRight.
+quant(zero_pred_match(A)) -->    % (?<=abc)
+  tZeroPredMatchLeft, toplevel(A), tZeroPredMatchRight.
+quant(zero_pred_non_match(A)) -->    % (?<!abc)
+  tZeroPredNonMatchLeft, toplevel(A), tZeroPredNonMatchRight.
+quant(zero_no_retry_match(A)) -->    % (?>abc)
+  tZeroNoRetryMatchLeft, toplevel(A), tZeroNoRetryMatchRight.
 quant(A) --> group(A).
 
 % 1 or more digits
@@ -54,7 +62,8 @@ charset(A) --> char(A).
 charset1([]) --> [].
 charset1([range(A, B) | Xs]) --> [A, '-', B], charset1(Xs).
 charset1([char(A), char('-')]) --> [A, '-'].
-charset1([char(A) | Xs]) --> ['\\', C], {atom_concat('\\', C, A)}, charset1(Xs).
+charset1([A | Xs]) --> ['\\', C], {esc(C, A)}, charset1(Xs).
+charset1([char(A) | Xs]) --> ['\\', C], {not(esc(C, _)), atom_concat('\\', C, A)}, charset1(Xs).
 charset1([char(A) | Xs]) --> [A], {not(charset_meta(A))}, charset1(Xs).
 charset1([class(Class) | Xs]) --> class(Class), charset1(Xs).
 
@@ -115,6 +124,14 @@ tRepeatMiddle --> [','].
 tRepeatRight --> ['}'].
 tZeroMatchLeft --> ['(', '?', '='].
 tZeroMatchRight --> [')'].
+tZeroNonMatchLeft --> ['(', '?', '!'].
+tZeroNonMatchRight --> [')'].
+tZeroPredMatchLeft --> ['(', '?', '<', '='].
+tZeroPredMatchRight --> [')'].
+tZeroPredNonMatchLeft --> ['(', '?', '<', '!'].
+tZeroPredNonMatchRight --> [')'].
+tZeroNoRetryMatchLeft --> ['(', '?', '>'].
+tZeroNoRetryMatchRight --> [')'].
 tCaptureLeft --> ['('].
 tCaptureRight --> [')'].
 tGroupLeft --> ['(', '?', ':'].
