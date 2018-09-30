@@ -62,9 +62,9 @@ charset(include(A)) --> tIncludeLeft, charset1(A), tIncludeRight.
 charset(A) --> char(A).
 
 charset1([]) --> [].
-charset1([range(A, B) | Xs]) --> range(A, B), charset1(Xs).
-charset1([class(Class) | Xs]) --> class(Class), charset1(Xs).
-charset1([A | Xs]) --> cs_char(A), charset1(Xs).
+charset1([range(A, B) | Xs]) --> range(A, B), comma(Xs), charset1(Xs).
+charset1([class(Class) | Xs]) --> class(Class), comma(Xs), charset1(Xs).
+charset1([A | Xs]) --> cs_char(A), comma(Xs), charset1(Xs).
 
 range(A, B) --> tRangeLeft, [A], tComma, [B], tRangeRight.
 
