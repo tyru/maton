@@ -114,6 +114,8 @@ esc('e', esc).
 esc('t', tab).
 esc('r', cr).
 esc('b', bs).
+esc('d', digit).
+esc('D', nondigit).
 
 % meta('(').
 % meta(')').

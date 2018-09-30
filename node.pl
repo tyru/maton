@@ -98,6 +98,8 @@ esc(esc).
 esc(tab).
 esc(cr).
 esc(bs).
+esc(digit).
+esc(nondigit).
 
 tOrLeft --> chars('or(').
 tOrRight --> [')'].
