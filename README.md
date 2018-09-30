@@ -12,12 +12,12 @@ Convert ERE and Vim regexp bidirectionally.
 ## Conversion between ERE and Vim pattern
 
 ```
-swipl main.pl -v -f ere -t vim {ERE pattern}
-swipl main.pl -v -f vim -t ere {Vim pattern}
+swipl main.pl -f ere -t vim {ERE pattern}
+swipl main.pl -f vim -t ere {Vim pattern}
 ```
 
 ## Dump node
 
 ```
-swipl main.pl -v -f ere -t node {ERE pattern}
+swipl main.pl -f ere -t node {ERE pattern}
 ```
