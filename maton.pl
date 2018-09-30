@@ -5,13 +5,28 @@ main :-
     loop(Opts, Args)
   ) -> halt(0); halt(1).
 
+:- dynamic loglevel/1.
+loglevel(1).
+
+debug(Format, Args) :-
+  loglevel(N), N < 2, !;
+  with_output_to(
+    user_error,
+    (
+      format(user_error, Format, Args), nl
+    )
+  ).
+
 opts_spec([
   [opt(from), type(atom),
     shortflags([f]), longflags([from]),
     help(['input format of string'])],
   [opt(to), type(atom),
     shortflags([t]), longflags([to]),
-    help(['output format of string'])]
+    help(['output format of string'])],
+  [opt(verbose), type(boolean), default(false),
+    shortflags([v]), longflags([verbose]),
+    help(['verbose output'])]
 ]).
 
 parse_args(Opts, Args) :-
@@ -19,7 +34,11 @@ parse_args(Opts, Args) :-
   opts_spec(OptsSpec),
   opt_parse(OptsSpec, RawArgs, Opts, Args),
   check_opts(Opts, Err),
-  (Err == nil -> true; format('error: ~s\n', [Err]), fail).
+  (Err == nil, !; format('error: ~s\n', [Err]), fail),
+  member(verbose(Verbose), Opts),
+  (Verbose == true ->
+    asserta(loglevel(2) :- !);
+    asserta(loglevel(1) :- !)).
 
 check_opts(Opts, Err) :-
   member(from(From), Opts),
@@ -73,12 +92,15 @@ convert(Opts, In, Out) :-
   member(to(To), Opts),
   convert(From, In, To, Out).
 convert(From, In, To, Out) :-
+  debug('~s pattern: ~s', [From, In]),
   % In -> Node
   atom_chars(In, InCs),
   phrase(From:toplevel(Node), InCs),
+  debug('node: ~q', [Node]),
   % Node -> Out
   phrase(To:toplevel(Node), OutCs),
-  xxx_list_string(OutCs, Out).
+  xxx_list_string(OutCs, Out),
+  debug('~s pattern: ~s', [To, Out]).
 
 xxx_list_string([], '') :- !.
 xxx_list_string([A | Ts], A_) :-
