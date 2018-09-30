@@ -72,9 +72,7 @@ class(A) --> ['[', ':'], lowers(A), [':', ']'].
 % 1 or more a-z
 lowers(A) --> when_parsing(parse_lowers(A), generate_lowers(A)).
 
-generate_lowers(A) --> {atom_chars(A, Cs)}, chars(Cs).
-chars([]) --> [].
-chars([C | Cs]) --> [C], chars(Cs).
+generate_lowers(A) --> chars(A).
 
 parse_lowers(A) --> lowers_chars(Cs), {atom_chars(A, Cs)}.
 lowers_chars([A]) --> lower(A).

@@ -1,4 +1,4 @@
-:- module(common, [when_parsing/4]).
+:- module(common, [when_parsing/4, chars/3]).
 
 %% when_parsing(:Then, :Else)//
 %
@@ -13,3 +13,7 @@ when_parsing(Then, Else) -->
 %  the DCG list is not a variable.
 parsing(H,H) :-
   nonvar(H).
+
+chars(A) --> {atom_chars(A, Cs)}, char_list(Cs).
+char_list([]) --> [].
+char_list([C | Cs]) --> [C], char_list(Cs).

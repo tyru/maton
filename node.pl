@@ -59,27 +59,25 @@ group(A) --> charset(A).
 
 charset(exclude(A)) --> tExcludeLeft, charset1(A), tExcludeRight.
 charset(include(A)) --> tIncludeLeft, charset1(A), tIncludeRight.
-charset(A) --> tCharLeft, char(A), tCharRight.
+charset(A) --> char(A).
 
 charset1([]) --> [].
 charset1([range(A, B) | Xs]) --> range(A, B), charset1(Xs).
 charset1([class(Class) | Xs]) --> class(Class), charset1(Xs).
-charset1([A | Xs]) --> tCharLeft, cs_char(A), tCharRight, charset1(Xs).
+charset1([A | Xs]) --> cs_char(A), charset1(Xs).
 
 range(A, B) --> tRangeLeft, [A], tComma, [B], tRangeRight.
 
 cs_char(A) --> ['\\', C], {esc(C, A)}.
-cs_char(char(A)) --> ['\\', C], {not(esc(C, _)), atom_concat('\\', C, A)}.
-cs_char(char(C)) --> [C], {not(charset_meta(C))}.
+cs_char(char(A)) --> tCharLeft, ['\\', C], tCharRight, {not(esc(C, _)), atom_concat('\\', C, A)}.
+cs_char(char(C)) --> tCharLeft, [C], tCharRight, {not(charset_meta(C))}.
 
 class(A) --> tClassLeft, lowers(A), tClassRight.
 
 % 1 or more a-z
 lowers(A) --> when_parsing(parse_lowers(A), generate_lowers(A)).
 
-generate_lowers(A) --> {atom_chars(A, Cs)}, chars(Cs).
-chars([]) --> [].
-chars([C | Cs]) --> [C], chars(Cs).
+generate_lowers(A) --> chars(A).
 
 parse_lowers(A) --> lowers_chars(Cs), {atom_chars(A, Cs)}.
 lowers_chars([A]) --> lower(A).
@@ -100,9 +98,9 @@ comma([_|_]) --> tComma.
 char(dot) --> tDot.
 char(bol) --> tBOL.
 char(eol) --> tEOL.
-char(A) --> ['\\', C], {esc(C, A)}.
-char(char(A)) --> ['\\', C], {not(esc(C, _)), atom_concat('\\', C, A)}.
-char(char(C)) --> [C], {not(meta(C))}.
+char(A) --> {esc(_, A)}, chars(A).
+char(char(A)) --> tCharLeft, ['\\', C], tCharRight, {not(esc(C, _)), atom_concat('\\', C, A)}.
+char(char(C)) --> tCharLeft, [C], tCharRight, {not(meta(C))}.
 
 esc('n', nl).
 esc('e', esc).
@@ -124,46 +122,46 @@ meta('^').
 meta('$').
 meta('\\').
 
-tOrLeft --> ['o', 'r', '('].
+tOrLeft --> chars('or(').
 tOrRight --> [')'].
 tSeqLeft --> ['['].
 tSeqRight --> [']'].
-tStarLeft --> ['s', 't', 'a', 'r', '('].
+tStarLeft --> chars('star(').
 tStarRight --> [')'].
-tPlusLeft --> ['p', 'l', 'u', 's', '('].
+tPlusLeft --> chars('plus(').
 tPlusRight --> [')'].
-tOptionLeft --> ['o', 'p', 't', 'i', 'o', 'n', '('].
+tOptionLeft --> chars('option(').
 tOptionRight --> [')'].
-tRepeatLeft --> ['r', 'e', 'p', 'e', 'a', 't', '('].
+tRepeatLeft --> chars('repeat(').
 tRepeatMiddle --> [','].
 tRepeatRight --> [')'].
-tNil --> ['n', 'i', 'l'].
-tZeroMatchLeft --> ['z', 'e', 'r', 'o', '_', 'm', 'a', 't', 'c', 'h', '('].
+tNil --> chars('nil').
+tZeroMatchLeft --> chars('zero_match(').
 tZeroMatchRight --> [')'].
-tZeroNonMatchLeft --> ['z', 'e', 'r', 'o', '_', 'n', 'o', 'n', '_', 'm', 'a', 't', 'c', 'h', '('].
+tZeroNonMatchLeft --> chars('zero_non_match(').
 tZeroNonMatchRight --> [')'].
-tZeroPredMatchLeft --> ['z', 'e', 'r', 'o', '_', 'p', 'r', 'e', 'd', '_', 'm', 'a', 't', 'c', 'h', '('].
+tZeroPredMatchLeft --> chars('zero_pred_match(').
 tZeroPredMatchRight --> [')'].
-tZeroPredNonMatchLeft --> ['z', 'e', 'r', 'o', '_', 'p', 'r', 'e', 'd', '_', 'n', 'o', 'n', '_', 'm', 'a', 't', 'c', 'h', '('].
+tZeroPredNonMatchLeft --> chars('zero_pred_non_match(').
 tZeroPredNonMatchRight --> [')'].
-tZeroNoRetryMatchLeft --> ['z', 'e', 'r', 'o', '_', 'n', 'o', '_', 'r', 'e', 't', 'r', 'y', '_', 'm', 'a', 't', 'c', 'h', '('].
+tZeroNoRetryMatchLeft --> chars('zero_no_retry_match(').
 tZeroNoRetryMatchRight --> [')'].
-tCaptureLeft --> ['c', 'a', 'p', 't', 'u', 'r', 'e', '('].
+tCaptureLeft --> chars('capture(').
 tCaptureRight --> [')'].
-tGroupLeft --> ['g', 'r', 'o', 'u', 'p', '('].
+tGroupLeft --> chars('group(').
 tGroupRight --> [')'].
-tIncludeLeft --> ['i', 'n', 'c', 'l', 'u', 'd', 'e', '(', '['].
-tIncludeRight --> [']', ')'].
-tExcludeLeft --> ['e', 'x', 'c', 'l', 'u', 'd', 'e', '(', '['].
-tExcludeRight --> [']', ')'].
-tRangeLeft --> ['r', 'a', 'n', 'g', 'e', '('].
+tIncludeLeft --> chars('include([').
+tIncludeRight --> chars('])').
+tExcludeLeft --> chars('exclude([').
+tExcludeRight --> chars('])').
+tRangeLeft --> chars('range(').
 tRangeRight --> [')'].
-tClassLeft --> ['c', 'l', 'a', 's', 's', '('].
+tClassLeft --> chars('class(').
 tClassRight --> [')'].
-tCharLeft --> ['c', 'h', 'a', 'r', '('].
+tCharLeft --> chars('char(').
 tCharRight --> [')'].
 tComma --> [','].
-tDot --> ['d', 'o', 't'].
-tBOL --> ['b', 'o', 'l'].
-tEOL --> ['e', 'o', 'l'].
-tEscNL --> ['n', 'l'].
+tDot --> chars('dot').
+tBOL --> chars('bol').
+tEOL --> chars('eol').
+tEscNL --> chars('nl').
