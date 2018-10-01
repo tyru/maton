@@ -87,7 +87,7 @@ charset_exclude([char(C) | Xs]) --> ['\\', C], {not(esc(C, _)), charset_meta(C)}
 charset_exclude([char(C) | Xs]) --> [C], {not(charset_meta(C))}, charset_exclude(Xs).
 charset_exclude([class(Class) | Xs]) --> class(Class), charset_exclude(Xs).
 
-class(A) --> ['[', ':'], lowers(A), [':', ']'].
+class(A) --> tClassLeft, lowers(A), tClassRight.
 
 % 1 or more a-z
 lowers(A) --> parsing, parse_lowers(A).
@@ -163,6 +163,8 @@ tIncludeLeft --> ['['].
 tIncludeRight --> [']'].
 tExcludeLeft --> chars('[^').
 tExcludeRight --> [']'].
+tClassLeft --> chars('[:').
+tClassRight --> chars(':]').
 tDot --> ['.'].
 tBOL --> ['^'].
 tEOL --> ['$'].

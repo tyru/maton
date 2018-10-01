@@ -46,8 +46,6 @@ repeat(nil, M) --> tNil, tRepeatMiddle, digits(M).
 repeat(N, M) --> digits(N), tRepeatMiddle, digits(M), {N =< M}.
 
 % 1 or more digits
-digits(-N) --> ['-'], parsing, parse_digits(0, N).
-digits(-N) --> ['-'], generating, generate_digits(N).
 digits(N) --> parsing, parse_digits(0, N).
 digits(N) --> generating, generate_digits(N).
 
@@ -69,7 +67,7 @@ charset1([]) --> [].
 charset1([range(A, B) | Xs]) --> range(A, B), comma(Xs), charset1(Xs).
 charset1([class(Class) | Xs]) --> class(Class), comma(Xs), charset1(Xs).
 charset1([char(C) | Xs]) --> tCharLeft, [C], tCharRight, comma(Xs), charset1(Xs).
-charset1([A | Xs]) --> {esc(A)}, chars(A), comma(Xs), charset1(Xs).
+charset1([A | Xs]) --> {esc(A)}, [A], comma(Xs), charset1(Xs).
 
 range(A, B) --> tRangeLeft, [A], tComma, [B], tRangeRight.
 
