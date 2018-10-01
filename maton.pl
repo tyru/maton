@@ -13,7 +13,7 @@ debug(Format, Args) :-
   with_output_to(
     user_error,
     (
-      write('[DEBUG] '),
+      get_time(D), format_time(user_error, '[DEBUG] [%T.%f] ', D),
       format(Format, Args),
       nl
     )
