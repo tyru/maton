@@ -486,6 +486,14 @@ bidirectionally_convertible(ModA, PatA, ModB, PatB) :-
     ]).
 :- end_tests(conversion).
 
+:- begin_tests(complex_patterns).
+  test(ip_address, [nondet]) :-
+    bidirectionally_convertible([
+      ere = '^(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)(?:\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)){3}$',
+      vim = '^\\%(25[0-5]\\|2[0-4]\\d\\|1\\d\\d\\|[1-9]\\d\\|\\d\\)\\%(\\.\\%(25[0-5]\\|2[0-4]\\d\\|1\\d\\d\\|[1-9]\\d\\|\\d\\)\\)\\{3}$',
+      node = '[bol,group(or([char(2),char(5),include([range(0,5)])],or([char(2),include([range(0,4)]),digit],or([char(1),digit,digit],or([include([range(1,9)]),digit],[digit]))))),repeat(group([char(.),group(or([char(2),char(5),include([range(0,5)])],or([char(2),include([range(0,4)]),digit],or([char(1),digit,digit],or([include([range(1,9)]),digit],[digit])))))]),3),eol]'
+    ]).
+:- end_tests(complex_patterns).
 
 :- begin_tests(error).
   test(error_1_ereg, [fail]) :-
