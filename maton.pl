@@ -13,7 +13,9 @@ debug(Format, Args) :-
   with_output_to(
     user_error,
     (
-      format(user_error, Format, Args), nl
+      write('[DEBUG] '),
+      format(Format, Args),
+      nl
     )
   ).
 
