@@ -19,17 +19,8 @@ seq([Q|Qs]) --> quant(Q), seq(Qs).
 quant(star(A)) --> group(A), tStar.
 quant(plus(A)) --> group(A), tPlus.
 quant(option(A)) --> group(A), tOption.
-quant(repeat(A, N)) -->    % {n}
-  group(A), tRepeatLeft, digits(N), tRepeatRight.
-quant(repeat(A, nil, nil)) -->    % {,}
-  group(A), tRepeatLeft, tRepeatMiddle, tRepeatRight.
-quant(repeat(A, nil, M)) -->    % {,m}
-  group(A), tRepeatLeft, tRepeatMiddle, digits(M), tRepeatRight.
-quant(repeat(A, N, nil)) -->    % {n,}
-  group(A), tRepeatLeft, digits(N), tRepeatMiddle, tRepeatRight.
-quant(repeat(A, N, M)) -->    % {n,m}
-  group(A), tRepeatLeft, digits(N), tRepeatMiddle, digits(M), tRepeatRight,
-  {N =< M}.
+quant(repeat(A, N)) --> group(A), tRepeatLeft, repeat(N), tRepeatRight.
+quant(repeat(A, N, M)) --> group(A), tRepeatLeft, repeat(N, M), tRepeatRight.
 quant(zero_match([A])) -->    % a\@=
   tZeroMatchLeft, group(A), tZeroMatchRight.
 quant(zero_match(A)) -->    % \%(abc\)\@=
@@ -52,8 +43,21 @@ quant(zero_no_retry_match(A)) -->    % \%(abc\)\@>
   tZeroNoRetryMatchLeft, group(group(A)), tZeroNoRetryMatchRight.
 quant(A) --> group(A).
 
+% {n}
+repeat(N) --> digits(N).
+% {,}
+repeat(nil, nil) --> tRepeatMiddle.
+% {n,}
+repeat(N, nil) --> digits(N), tRepeatMiddle.
+% {,m}
+repeat(nil, M) --> tRepeatMiddle, digits(M).
+% {n,m}
+repeat(N, M) --> digits(N), tRepeatMiddle, digits(M), {N =< M}.
+
+
 % 1 or more digits
-digits(N) --> when_parsing(parse_digits(0, N), generate_digits(N)).
+digits(N) --> parsing, parse_digits(0, N).
+digits(N) --> generating, generate_digits(N).
 
 generate_digits(N) --> [A], {atom_number(A, N)}.
 
@@ -86,7 +90,8 @@ charset_exclude([class(Class) | Xs]) --> class(Class), charset_exclude(Xs).
 class(A) --> ['[', ':'], lowers(A), [':', ']'].
 
 % 1 or more a-z
-lowers(A) --> when_parsing(parse_lowers(A), generate_lowers(A)).
+lowers(A) --> parsing, parse_lowers(A).
+lowers(A) --> generating, generate_lowers(A).
 
 generate_lowers(A) --> chars(A).
 
@@ -117,6 +122,7 @@ esc('b', bs).
 esc('d', digit).
 esc('D', nondigit).
 
+% meta('|').
 % meta('(').
 % meta(')').
 meta('[').

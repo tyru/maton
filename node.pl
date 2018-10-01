@@ -14,23 +14,14 @@ or(or(A, B)) --> tOrLeft, tSeqLeft, seq(A), tSeqRight, tComma, or(B), tOrRight.
 or(A) --> tSeqLeft, seq(A), tSeqRight.
 
 seq([]) --> [].
-seq([A]) --> quant(A).
-seq([A|As]) --> quant(A), comma(As), seq(As).
+seq([Q]) --> quant(Q).
+seq([Q|Qs]) --> quant(Q), tComma, seq(Qs), {not(empty(Qs))}.
 
 quant(star(A)) --> tStarLeft, group(A), tStarRight.
 quant(plus(A)) --> tPlusLeft, group(A), tPlusRight.
 quant(option(A)) --> tOptionLeft, group(A), tOptionRight.
-quant(repeat(A, N)) -->    % {n}
-  tRepeatLeft, group(A), tRepeatMiddle, digits(N), tRepeatRight.
-quant(repeat(A, nil, nil)) -->    % {,}
-  tRepeatLeft, group(A), tRepeatMiddle, tNil, tRepeatMiddle, tNil, tRepeatRight.
-quant(repeat(A, nil, M)) -->    % {,m}
-  tRepeatLeft, group(A), tRepeatMiddle, tNil, tRepeatMiddle, digits(M), tRepeatRight.
-quant(repeat(A, N, nil)) -->    % {n,}
-  tRepeatLeft, group(A), tRepeatMiddle, digits(N), tRepeatMiddle, tNil, tRepeatRight.
-quant(repeat(A, N, M)) -->    % {n,m}
-  tRepeatLeft, group(A), tRepeatMiddle, digits(N), tRepeatMiddle, digits(M), tRepeatRight,
-  {N =< M}.
+quant(repeat(A, N)) --> tRepeatLeft, group(A), tRepeatMiddle, repeat(N), tRepeatRight.
+quant(repeat(A, N, M)) --> tRepeatLeft, group(A), tRepeatMiddle, repeat(N, M), tRepeatRight.
 quant(zero_match(A)) -->    % (?=abc)
   tZeroMatchLeft, toplevel(A), tZeroMatchRight.
 quant(zero_non_match(A)) -->    % (?!abc)
@@ -43,9 +34,22 @@ quant(zero_no_retry_match(A)) -->    % (?>abc)
   tZeroNoRetryMatchLeft, toplevel(A), tZeroNoRetryMatchRight.
 quant(A) --> group(A).
 
+% {n}
+repeat(N) --> digits(N).
+% {,}
+repeat(nil, nil) --> tNil, tRepeatMiddle, tNil.
+% {n,}
+repeat(N, nil) --> digits(N), tRepeatMiddle, tNil.
+% {,m}
+repeat(nil, M) --> tNil, tRepeatMiddle, digits(M).
+% {n,m}
+repeat(N, M) --> digits(N), tRepeatMiddle, digits(M), {N =< M}.
+
 % 1 or more digits
-digits(-N) --> ['-'], when_parsing(parse_digits(0, N), generate_digits(N)).
-digits(N) --> when_parsing(parse_digits(0, N), generate_digits(N)).
+digits(-N) --> ['-'], parsing, parse_digits(0, N).
+digits(-N) --> ['-'], generating, generate_digits(N).
+digits(N) --> parsing, parse_digits(0, N).
+digits(N) --> generating, generate_digits(N).
 
 generate_digits(N) --> [A], {atom_number(A, N)}.
 
@@ -72,7 +76,8 @@ range(A, B) --> tRangeLeft, [A], tComma, [B], tRangeRight.
 class(A) --> tClassLeft, lowers(A), tClassRight.
 
 % 1 or more a-z
-lowers(A) --> when_parsing(parse_lowers(A), generate_lowers(A)).
+lowers(A) --> parsing, parse_lowers(A).
+lowers(A) --> generating, generate_lowers(A).
 
 generate_lowers(A) --> chars(A).
 
