@@ -1,6 +1,6 @@
 :- module(common, [parsing/2, generating/2, eos/2, chars/3, empty/1]).
 
-parsing(A, A) :- nonvar(A), A \= [].
+parsing(A, A) :- nonvar(A).
 generating(A, B) :- var(A), A = B.
 eos([], []).
 
